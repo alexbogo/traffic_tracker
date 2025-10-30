@@ -1,0 +1,34 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Shell scripts should always use LF
+*.sh text eol=lf
+
+# Docker files
+Dockerfile text eol=lf
+docker-compose.yml text eol=lf
+
+# PHP files
+*.php text eol=lf
+
+# JavaScript/Vue files
+*.js text eol=lf
+*.vue text eol=lf
+*.json text eol=lf
+
+# Config files
+*.yml text eol=lf
+*.yaml text eol=lf
+*.xml text eol=lf
+*.ini text eol=lf
+
+# Documentation
+*.md text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mmdb binary

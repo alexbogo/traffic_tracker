@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Page 5 - Debug Mode</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            background: white;
+            border-radius: 4px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        h1 {
+            margin-top: 0;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 18px;
+            margin-top: 25px;
+        }
+        .badge {
+            display: inline-block;
+            background: #95a5a6;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: normal;
+            margin-left: 10px;
+        }
+        .debug-panel {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .debug-log {
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+        .debug-log:last-child {
+            border-bottom: none;
+        }
+        .log-time {
+            color: #858585;
+            margin-right: 10px;
+        }
+        .log-tracker {
+            color: #4ec9b0;
+        }
+        .log-success {
+            color: #6a9955;
+        }
+        .log-error {
+            color: #f48771;
+        }
+        .log-data {
+            color: #ce9178;
+            margin-left: 20px;
+            display: block;
+            margin-top: 5px;
+        }
+        .info-box {
+            background: #f0f7ff;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .nav {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid #3498db;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        a:hover {
+            background: #3498db;
+            color: white;
+        }
+        button {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #229954;
+        }
+        button.secondary {
+            background: #95a5a6;
+        }
+        button.secondary:hover {
+            background: #7f8c8d;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Demo Page 5 <span class="badge">Debug Mode</span></h1>
+        
+        <div class="info-box">
+            <strong>Debug Mode Enabled</strong><br>
+            This page demonstrates the tracker with debug logging enabled. Watch the console output below to see tracking events in real-time.
+        </div>
+
+        <h2>Session Information</h2>
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="trackCount">0</div>
+                <div class="stat-label">Tracking Events</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="sessionId">Loading...</div>
+                <div class="stat-label">Session ID</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="fingerprint">Loading...</div>
+                <div class="stat-label">Fingerprint</div>
+            </div>
+        </div>
+
+        <h2>Actions</h2>
+        <button onclick="manualTrack()">Track Manually</button>
+        <button class="secondary" onclick="clearLogs()">Clear Logs</button>
+
+        <h2>Console Output</h2>
+        <div class="debug-panel" id="debugPanel">
+            <div class="debug-log">
+                <span class="log-time">[Waiting for tracker...]</span>
+            </div>
+        </div>
+
+        <h2>Logged Events</h2>
+        <ul>
+            <li>Tracker initialization</li>
+            <li>Data capture (fingerprint, session, URL, etc.)</li>
+            <li>API requests to tracking server</li>
+            <li>Success/failure responses</li>
+            <li>Retry attempts if any errors occur</li>
+        </ul>
+
+        <div class="nav">
+            <a href="page1.html">Page 1</a>
+            <a href="page2.html">Page 2</a>
+            <a href="page3.html">Page 3</a>
+            <a href="page4.html">Page 4 - External Tracker</a>
+        </div>
+    </div>
+
+    <script>
+        window.TRACKER_CONFIG = {
+            debug: true
+        };
+
+        let trackCount = 0;
+        const originalLog = console.log;
+        const originalError = console.error;
+        const debugPanel = document.getElementById('debugPanel');
+
+        function addLog(message, data, type = 'log') {
+            const time = new Date().toLocaleTimeString();
+            const logDiv = document.createElement('div');
+            logDiv.className = 'debug-log';
+            
+            let logClass = 'log-tracker';
+            if (type === 'error') logClass = 'log-error';
+            if (message.includes('successful')) logClass = 'log-success';
+            
+            let html = `<span class="log-time">[${time}]</span><span class="${logClass}">${message}</span>`;
+            
+            if (data) {
+                const dataStr = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+                html += `<span class="log-data">${dataStr}</span>`;
+            }
+            
+            logDiv.innerHTML = html;
+            
+            if (debugPanel.children[0].textContent.includes('Waiting')) {
+                debugPanel.innerHTML = '';
+            }
+            
+            debugPanel.appendChild(logDiv);
+            debugPanel.scrollTop = debugPanel.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            if (args[0] && args[0].includes('Traffic Tracker')) {
+                addLog(args[0], args[1], 'log');
+                
+                if (args[0].includes('successful')) {
+                    trackCount++;
+                    document.getElementById('trackCount').textContent = trackCount;
+                }
+            }
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            if (args[0] && args[0].includes('Traffic Tracker')) {
+                addLog(args[0], args[1], 'error');
+            }
+        };
+
+        function manualTrack() {
+            if (window.TrafficTracker) {
+                addLog('[Manual] Triggering tracking event...', null, 'log');
+                window.TrafficTracker.track();
+            } else {
+                addLog('[Error] Tracker not loaded yet', null, 'error');
+            }
+        }
+
+        function clearLogs() {
+            debugPanel.innerHTML = '<div class="debug-log"><span class="log-time">[Logs cleared]</span></div>';
+        }
+
+        setTimeout(() => {
+            try {
+                const sessionId = sessionStorage.getItem('tracker_session_id');
+                if (sessionId) {
+                    document.getElementById('sessionId').textContent = sessionId.substring(0, 20) + '...';
+                }
+                
+                const fpHash = Math.random().toString(36).substring(2, 10);
+                document.getElementById('fingerprint').textContent = 'fp_' + fpHash;
+            } catch (e) {
+                document.getElementById('sessionId').textContent = 'N/A';
+                document.getElementById('fingerprint').textContent = 'N/A';
+            }
+        }, 1000);
+    </script>
+
+    <script src="/tracker.js"></script>
+</body>
+</html>

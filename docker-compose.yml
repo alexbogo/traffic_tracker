@@ -1,0 +1,90 @@
+services:
+  # MySQL Database Service
+  mysql:
+    image: mysql:8.0
+    container_name: traffic_tracker_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: traffic_tracker
+      MYSQL_USER: tracker_user
+      MYSQL_PASSWORD: tracker_pass
+    ports:
+      - "3307:3306"  # Changed to 3307 to avoid conflict with local MySQL
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - traffic_tracker_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # PHP-FPM Service with Symfony
+  php:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: traffic_tracker_php
+    restart: unless-stopped
+    working_dir: /var/www/backend
+    volumes:
+      - ./backend:/var/www/backend
+      - ./docker/geoip:/usr/share/GeoIP
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+    environment:
+      DATABASE_URL: "mysql://tracker_user:tracker_pass@mysql:3306/traffic_tracker?serverVersion=8.0"
+      APP_ENV: dev
+      APP_SECRET: "your-secret-key-change-in-production"
+      GEOIP_DATABASE_PATH: "/usr/share/GeoIP/GeoLite2-Country.mmdb"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - traffic_tracker_network
+
+  # Nginx Web Server
+  nginx:
+    image: nginx:alpine
+    container_name: traffic_tracker_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./backend:/var/www/backend
+      - ./frontend:/var/www/frontend
+      - ./demo:/var/www/demo
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+      - node
+    networks:
+      - traffic_tracker_network
+
+  # Node.js Service for Vue.js Frontend
+  node:
+    image: node:20-alpine
+    container_name: traffic_tracker_node
+    restart: unless-stopped
+    working_dir: /var/www/frontend
+    volumes:
+      - ./frontend:/var/www/frontend
+      - node_modules:/var/www/frontend/node_modules
+    # Command will be updated in Phase 7 when Vue is installed
+    # For now, just keep container running
+    command: sh -c "if [ -f package.json ]; then npm install && npm run dev -- --host 0.0.0.0; else echo 'Waiting for Phase 7 (Vue.js setup)...' && tail -f /dev/null; fi"
+    ports:
+      - "5173:5173"
+    environment:
+      NODE_ENV: development
+    networks:
+      - traffic_tracker_network
+
+networks:
+  traffic_tracker_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  node_modules:

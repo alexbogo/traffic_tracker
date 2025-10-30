@@ -1,0 +1,79 @@
+# ============================================
+# SYMFONY BACKEND
+# ============================================
+
+# Dependencies
+/backend/vendor/
+
+# Cache and logs
+/backend/var/cache/*
+/backend/var/log/*
+!/backend/var/cache/.gitkeep
+!/backend/var/log/.gitkeep
+
+# Symfony environment files (keep .env but ignore local overrides)
+/backend/.env.local
+/backend/.env.local.php
+/backend/.env.*.local
+
+# IDE files
+/backend/.phpunit.result.cache
+/backend/.php-cs-fixer.cache
+
+# ============================================
+# VUE.JS FRONTEND
+# ============================================
+
+# Dependencies
+/frontend/node_modules/
+
+# Build output
+/frontend/dist/
+
+# Local env files
+/frontend/.env.local
+/frontend/.env.*.local
+
+# Editor directories and files
+/frontend/.vscode/*
+!/frontend/.vscode/extensions.json
+/frontend/.idea
+
+# Logs
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/pnpm-debug.log*
+
+# ============================================
+# DOCKER
+# ============================================
+
+# Docker volumes (MySQL data should not be committed)
+mysql_data/
+
+# GeoIP database files (large binary files)
+/docker/geoip/*.mmdb
+/docker/geoip/*.tar.gz
+
+# ============================================
+# GENERAL
+# ============================================
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
