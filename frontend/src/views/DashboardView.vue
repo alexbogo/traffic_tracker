@@ -170,7 +170,7 @@ export default {
 
       if (result.success) {
         // Filter to show only demo pages (localhost:8080/demo/)
-        pages.value = result.data.filter(page => 
+        pages.value = result.data.filter(page =>
           page.url.includes('localhost:8080/demo/')
         );
       }
