@@ -12,8 +12,6 @@ docker-compose up -d --build
 
 Access dashboard at http://localhost:5173 (login: admin/admin123) after 30-60 seconds.
 
-**For complete installation and troubleshooting:** [Documentation/INSTALLATION.md](Documentation/INSTALLATION.md)
-
 ## Features
 
 - JavaScript tracker for client-side data collection
@@ -29,9 +27,8 @@ Access dashboard at http://localhost:5173 (login: admin/admin123) after 30-60 se
 
 **Backend:** Symfony 7.3 (PHP 8.2), Doctrine ORM, JWT Authentication, MySQL 8.0  
 **Frontend:** Vue.js 3, Vite 7, Vue Router 4, Bootstrap 5, Chart.js  
-**Infrastructure:** Docker, Nginx, Node.js 20
-
-For detailed architecture and design patterns, see [Documentation/ARCHITECTURE.md](Documentation/ARCHITECTURE.md).
+**Infrastructure:** Docker, Nginx, Node.js 20  
+**Testing:** PHPUnit 11 ([backend/tests/README.md](backend/tests/README.md))
 
 ## Prerequisites
 
@@ -54,12 +51,10 @@ Wait 30-60 seconds for automatic dependency installation.
 - Demo Pages: http://localhost:8080/demo/page1.html
 - API: http://localhost:8080/api
 
-**Note:** Default admin user is created automatically. To create additional users:
+**Create additional users:**
 ```bash
 docker-compose exec php bin/console app:create-user <username> <email> <password>
 ```
-
-For complete installation instructions and troubleshooting, see [Documentation/INSTALLATION.md](Documentation/INSTALLATION.md).
 
 ## Embedding the Tracker
 
@@ -82,8 +77,6 @@ For complete installation instructions and troubleshooting, see [Documentation/I
 <script src="https://cdn.yourdomain.com/tracker.min.js" async></script>
 ```
 
-For complete embedding documentation, CDN deployment, and integration examples, see [Documentation/TRACKER-EMBEDDING.md](Documentation/TRACKER-EMBEDDING.md).
-
 ## API Endpoints
 
 ### Authentication
@@ -94,8 +87,6 @@ Content-Type: application/json
 
 {"username": "admin", "password": "admin123"}
 ```
-
-Returns JWT token for protected endpoints.
 
 ### Tracking (Public)
 
@@ -114,11 +105,11 @@ Content-Type: application/json
 }
 ```
 
-Returns `204 No Content`. Server automatically enriches with IP geolocation, device type, browser, and bot detection.
+Returns `204 No Content`. Server enriches with IP geolocation, device type, browser, and bot detection.
 
 ### Analytics (Protected)
 
-All analytics endpoints require JWT token in `Authorization: Bearer <token>` header.
+Requires JWT token in `Authorization: Bearer <token>` header.
 
 ```http
 GET /api/pages
@@ -133,7 +124,26 @@ GET /api/me
 **pages:** Tracked pages (id, url, title, timestamps)  
 **visits:** Visit records (id, page_id, fingerprint, ip_hash, country, device_type, browser, is_bot, is_unique, timestamps)
 
-Full schema in `docker/mysql/init.sql`.
+Full schema: `docker/mysql/init.sql`
+
+## Testing
+
+```bash
+# Run all tests
+docker-compose exec php vendor/bin/phpunit
+
+# Human-readable output with test names
+docker-compose exec php vendor/bin/phpunit --testdox
+
+# With colors
+docker-compose exec php vendor/bin/phpunit --testdox --colors=always
+
+# Run specific test
+docker-compose exec php vendor/bin/phpunit tests/Unit/Service/DeviceDetectionServiceTest.php
+```
+
+**Test Suite:** 34 tests (24 device/browser/bot detection + 10 IP geolocation)  
+See [backend/tests/README.md](backend/tests/README.md) for details.
 
 ## Development
 
@@ -148,7 +158,6 @@ docker-compose exec node sh
 # Symfony console
 docker-compose exec php bin/console debug:router
 docker-compose exec php bin/console cache:clear
-docker-compose exec php bin/console app:create-user <username> <email> <password>
 
 # View logs
 docker-compose logs -f php
@@ -167,52 +176,10 @@ Password: tracker_pass
 
 ### Frontend Development
 
-Frontend runs at http://localhost:5173 with hot module replacement.
-
 ```bash
 docker-compose exec node sh
-npm install
-npm run dev
+npm run dev    # http://localhost:5173 with HMR
 npm run build
-```
-
-## Configuration
-
-### Environment Variables
-
-Key settings in `.env` (or Docker environment overrides in `docker-compose.yml`):
-
-```env
-APP_ENV=prod
-APP_SECRET=<secure-random-string>
-DATABASE_URL=mysql://tracker_user:tracker_pass@mysql:3306/traffic_tracker
-JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
-JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
-JWT_PASSPHRASE=<your-passphrase>
-```
-
-**Note:** Docker environment variables in `docker-compose.yml` override `backend/.env` values.
-
-### CORS Configuration
-
-Edit `backend/config/packages/nelmio_cors.yaml` for production domains:
-
-```yaml
-nelmio_cors:
-    defaults:
-        allow_origin: ['https://yourdomain.com']
-        allow_methods: ['GET', 'POST', 'OPTIONS']
-```
-
-### JWT Keys
-
-Pre-generated keys exist in `backend/config/jwt/`. Generate new keys only if needed:
-
-```bash
-docker-compose exec php sh -c '
-    openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096
-    openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
-'
 ```
 
 ## Deployment
@@ -230,11 +197,11 @@ docker-compose exec php sh -c '
 
 ### Tracker Deployment
 
-1. Minify: `npx terser tracker.js -o tracker.min.js --compress --mangle`
-2. Upload to CDN (CloudFront, Cloudflare, etc.)
-3. Update embed code with CDN URL
+```bash
+npx terser tracker.js -o tracker.min.js --compress --mangle
+```
 
-See [Documentation/TRACKER-EMBEDDING.md](Documentation/TRACKER-EMBEDDING.md) for detailed deployment guide.
+Upload to CDN and update embed code.
 
 ## Troubleshooting
 
@@ -250,21 +217,13 @@ docker-compose down && docker-compose up -d --build
 1. Enable debug mode: `window.TRACKER_CONFIG = { debug: true }`
 2. Check CORS configuration
 3. Verify endpoint: `curl -X POST http://localhost:8080/api/track -H "Content-Type: application/json" -d '{"url":"test","title":"test","fingerprint":"test"}'`
-4. Check logs: `docker-compose logs -f php`
 
 ### Geolocation Not Working
 
-IP-API.com does not work for localhost/private IPs. Test with public IP or manually insert test data:
+IP-API.com does not work for localhost/private IPs. Test with public IP or insert test data:
 
 ```sql
 UPDATE visits SET ip_country_code = 'US', ip_country_name = 'United States' WHERE id = 1;
-```
-
-### Dashboard Not Loading
-
-```bash
-docker-compose ps node  # Verify running
-docker-compose logs node  # Check for errors
 ```
 
 ## Project Structure
@@ -286,23 +245,21 @@ traffic_tracker/
 │   ├── ARCHITECTURE.md
 │   └── TRACKER-EMBEDDING.md
 └── docker-compose.yml   # Container orchestration
-```
+``` 
 
 ## Documentation
 
-- **[ARCHITECTURE.md](Documentation/ARCHITECTURE.md)** - System architecture, design patterns, and technical details
-- **[TRACKER-EMBEDDING.md](Documentation/TRACKER-EMBEDDING.md)** - Tracker embedding guide, configuration, and CDN deployment
+- **[ARCHITECTURE.md](Documentation/ARCHITECTURE.md)** - System architecture and design patterns
+- **[INSTALLATION.md](Documentation/INSTALLATION.md)** - Complete installation and troubleshooting
+- **[TRACKER-EMBEDDING.md](Documentation/TRACKER-EMBEDDING.md)** - Tracker embedding and CDN deployment
+- **[Tests README](backend/tests/README.md)** - PHPUnit test suite documentation
 
 ## Technical Notes
 
 **Geolocation:** IP-API.com (45 req/min free tier, no signup)  
-**Security:** SHA-256 IP hashing, JWT auth, CORS protection, Doctrine parameter binding  
+**Security:** SHA-256 IP hashing, JWT auth, CORS protection  
 **Privacy:** No PII storage, country-level geolocation only  
 **Performance:** 2KB minified tracker, database indexing, 204 No Content responses
-
-## License
-
-This project was created as part of a technical assessment.
 
 ---
 
