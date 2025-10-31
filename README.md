@@ -252,6 +252,7 @@ traffic_tracker/
 - **[ARCHITECTURE.md](Documentation/ARCHITECTURE.md)** - System architecture and design patterns
 - **[INSTALLATION.md](Documentation/INSTALLATION.md)** - Complete installation and troubleshooting
 - **[TRACKER-EMBEDDING.md](Documentation/TRACKER-EMBEDDING.md)** - Tracker embedding and CDN deployment
+- **[DATA_FLOW.md](Documentation/DATA_FLOW.md)** - Application data flow
 - **[Tests README](backend/tests/README.md)** - PHPUnit test suite documentation
 
 ## Technical Notes
