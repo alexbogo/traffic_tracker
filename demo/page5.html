@@ -243,7 +243,7 @@
             if (args[0] && args[0].includes('Traffic Tracker')) {
                 addLog(args[0], args[1], 'log');
                 
-                if (args[0].includes('successful')) {
+                if (args[0].toLowerCase().includes('successful')) {
                     trackCount++;
                     document.getElementById('trackCount').textContent = trackCount;
                 }
@@ -258,11 +258,17 @@
         };
 
         function manualTrack() {
+            addLog('[Manual] Triggering tracking event...', null, 'log');
+            
             if (window.TrafficTracker) {
-                addLog('[Manual] Triggering tracking event...', null, 'log');
-                window.TrafficTracker.track();
+                try {
+                    window.TrafficTracker.track();
+                    addLog('[Manual] Track function called successfully', null, 'log');
+                } catch (error) {
+                    addLog('[Manual Error] ' + error.message, null, 'error');
+                }
             } else {
-                addLog('[Error] Tracker not loaded yet', null, 'error');
+                addLog('[Error] Tracker not loaded yet. Wait a moment and try again.', null, 'error');
             }
         }
 
@@ -270,20 +276,31 @@
             debugPanel.innerHTML = '<div class="debug-log"><span class="log-time">[Logs cleared]</span></div>';
         }
 
-        setTimeout(() => {
-            try {
-                const sessionId = sessionStorage.getItem('tracker_session_id');
-                if (sessionId) {
-                    document.getElementById('sessionId').textContent = sessionId.substring(0, 20) + '...';
+        // Update session info after tracker loads
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                try {
+                    const sessionId = sessionStorage.getItem('tracker_session_id');
+                    if (sessionId) {
+                        document.getElementById('sessionId').textContent = sessionId.substring(8, 20);
+                    }
+                    
+                    if (window.TrafficTracker) {
+                        // Get fingerprint from a manual capture
+                        const testData = {
+                            url: window.location.href,
+                            fingerprint: 'fp_' + Math.random().toString(36).substr(2, 7)
+                        };
+                        document.getElementById('fingerprint').textContent = testData.fingerprint;
+                        
+                        addLog('[System] Tracker loaded and ready', null, 'log');
+                    }
+                } catch (e) {
+                    document.getElementById('sessionId').textContent = 'N/A';
+                    document.getElementById('fingerprint').textContent = 'N/A';
                 }
-                
-                const fpHash = Math.random().toString(36).substring(2, 10);
-                document.getElementById('fingerprint').textContent = 'fp_' + fpHash;
-            } catch (e) {
-                document.getElementById('sessionId').textContent = 'N/A';
-                document.getElementById('fingerprint').textContent = 'N/A';
-            }
-        }, 1000);
+            }, 500);
+        });
     </script>
 
     <script src="/tracker.js"></script>
